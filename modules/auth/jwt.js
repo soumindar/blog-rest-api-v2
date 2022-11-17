@@ -1,5 +1,5 @@
 const jwt = require('jsonwebtoken');
-const { sequelize, model, Op } = require('../../db');
+const { sequelize, model } = require('../../db');
 const UsersModel = model.users_model;
 
 const jwtVerify = async (req, res, next) => {

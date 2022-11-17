@@ -1,4 +1,5 @@
 const { sequelize, model } = require('../../db');
+const { Op } = require('sequelize');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const UsersModel = model.users_model;
@@ -123,7 +124,7 @@ const logout = async (req, res) => {
         }
       }
     );
-    
+
     return res.status(200).json({
       message: 'logout success',
       statusCode: 200
