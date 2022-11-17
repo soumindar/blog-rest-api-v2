@@ -7,7 +7,6 @@ const cors = require('cors');
 const corsOption = require('./config/cors.option');
 const fileUpload = require('express-fileupload');
 
-// variable untuk menyimpan directory penyimpanan file
 global.__basedir = __dirname;
 
 const indexRouter = require('./modules/index');

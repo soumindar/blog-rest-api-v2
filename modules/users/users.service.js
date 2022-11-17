@@ -39,6 +39,47 @@ const getData = async (req, res) => {
   }
 }
 
+// get all users controller
+const getAll = async (req, res) => {
+  try {
+    const { pagination, page } = req.query;
+
+    const limit = pagination ?? 10;
+    const pages = page ?? 1;
+    const offset = (pages - 1) * limit;
+
+    const getUsers = await UsersModel.findAll(
+      {
+        attributes: ['id', 'name', 'username'],
+      },
+      {
+        limit,
+        offset,
+      }
+    );
+    
+    const dataAmount = await UsersModel.count();
+    const maxPage = dataAmount / limit;
+
+    return res.status(200).json({
+      message: 'success',
+      statusCode: 200,
+      data: getUsers.dataValues,
+      meta: {
+        pagination: Number(limit),
+        page: Number(pages),
+        data_amount: Number(dataAmount),
+        max_page: Number(maxPage)
+      }
+    });
+  } catch (error) {
+    return res.status(500).json({
+      message: error.message,
+      statusCode: 500
+    });
+  }
+}
+
 // get user by username controller
 const getByUsername = async (req, res) => {
   try {
@@ -189,6 +230,7 @@ const deleteUser = async (req, res) => {
 
 module.exports = {
   getData,
+  getAll,
   getByUsername,
   updateUser,
   changePass,
