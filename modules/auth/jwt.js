@@ -1,5 +1,6 @@
 const jwt = require('jsonwebtoken');
-const { sequelize } = require('../../db');
+const { sequelize, model, Op } = require('../../db');
+const UsersModel = model.users_model;
 
 const jwtVerify = async (req, res, next) => {
   try {
@@ -13,31 +14,25 @@ const jwtVerify = async (req, res, next) => {
     }
 
     const token = getToken.replace('Bearer ', '');
-    const getUser = await sequelize.query(
-      'SELECT id, token, is_deleted FROM users WHERE token = :token',
+    const getUser = await UsersModel.findOne(
       {
-        replacements: {
-          token,
+        attributes: ['id', 'token'],
+        where: {
+            token,
+            is_deleted: false
         }
       }
     );
 
-    if (!getUser[0][0]) {
+    if (!getUser) {
       return res.status(401).json({
         message: 'token invalid',
         statusCode: 401
       });
     }
 
-    if (getUser[0][0].is_deleted) {
-      return res.status(404).json({
-        message: 'user not exist',
-        statusCode: 404
-      });
-    }
-
     jwt.verify(token, process.env.SECRET);
-    req['user'] = { id: getUser[0][0].id };
+    req['user'] = { id: getUser.dataValues.id };
     req['token'] = token;
 
     return next();

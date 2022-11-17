@@ -1,22 +1,24 @@
-const { sequelize } = require('../../db');
+const { sequelize, model } = require('../../db');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
+const UsersModel = model.users_model;
 
 // register controller
 const register = async (req, res) => {
   try {
     const { name, username, password } = req.body;
 
-    const usernameExist = await sequelize.query(
-      'SELECT username FROM users WHERE username = :username',
+    const usernameExist = await UsersModel.findOne(
       {
-        replacements: {
-          username
+        attributes: ['username'],
+        where: {
+          username,
+          is_deleted: false,
         }
       }
     );
 
-    if (usernameExist[0][0]) {
+    if (usernameExist) {
       return res.status(409).json({
         message: 'username is already exist',
         statusCode: 409
@@ -26,16 +28,13 @@ const register = async (req, res) => {
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
     
-    await sequelize.query(
-      'INSERT INTO users(name, username, password, created_at) VALUES (:name, :username, :hashedPassword, now())',
+    await UsersModel.create(
       {
-        replacements: {
-          name,
-          username,
-          hashedPassword
-        }
+        name,
+        username,
+        password: hashedPassword,
       }
-    );
+    )
 
     return res.status(200).json({
       message: 'register success',
@@ -54,31 +53,24 @@ const login = async (req, res) => {
   try {
     const { username, password } = req.body;
 
-    const getUser = await sequelize.query(
-      'SELECT id, username, password, is_deleted FROM users WHERE username = :username',
+    const getUser = await UsersModel.findOne(
       {
-        replacements: {
-          username
+        attributes: ['id', 'password'],
+        where: {
+          username,
+          is_deleted: false,
         }
       }
     );
-    
-    const user = getUser[0][0];
 
-    if (!user) {
+    if (!getUser) {
       return res.status(404).json({
         message: 'username not found',
         statusCode: 404
       });
     }
 
-    if (user.is_delete) {
-      return res.status(404).json({
-        message: 'user not exist',
-        statusCode: 404
-      });
-    }
-
+    const user = getUser.dataValues;
     const passwordMatch = await bcrypt.compareSync(password, user.password);
     if (!passwordMatch) {
       return res.status(400).json({
@@ -88,22 +80,17 @@ const login = async (req, res) => {
     }
 
     const token = jwt.sign(
-      {
-        _id: user.id
-      },
+      { _id: user.id },
       process.env.SECRET,
-      {
-        expiresIn: "2h"
-      }
+      { expiresIn: "2h" }
     );
-
-    await sequelize.query(
-      'UPDATE users SET token = :token WHERE id = :user_id',
+    
+    await UsersModel.update(
       {
-        replacements: {
-          token,
-          user_id: user.id,
-        }
+        token
+      },
+      {
+        where: { id: user.id }
       }
     );
 
@@ -136,7 +123,7 @@ const logout = async (req, res) => {
         }
       }
     );
-
+    
     return res.status(200).json({
       message: 'logout success',
       statusCode: 200

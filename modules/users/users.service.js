@@ -142,7 +142,6 @@ const changePass = async (req, res) => {
       {
         password: hashedPassword,
         updated_at: Date.now(),
-        token: null
       },
       {
         where: {id: userId}
@@ -169,7 +168,7 @@ const deleteUser = async (req, res) => {
     await UsersModel.update(
       {
         is_deleted: true,
-        deleted_at: Date.now()
+        deleted_at: Date.now(),
       },
       {
         where: {id: userId}
