@@ -6,13 +6,14 @@ const UsersModel = model.users_model;
 const moment = require('moment-timezone');
 const userTimezone = require('../../config/timezone.config');
 const extention = require('../../utils/get.extention');
+const getBaseUrl = require('../../utils/get.base.url');
 
 // get data controller
 const getData = async (req, res) => {
   try {
     const { pagination, page, search, category, start_date, end_date, order_by, order } = req.query;
 
-    const limit = pagination ?? 3;
+    const limit = pagination ?? 10;
     const pages = page ?? 1;
     const offset = (pages - 1) * limit;
     const searchKey = (!search) ? '%' : `%${search}%`;
@@ -98,11 +99,12 @@ const getData = async (req, res) => {
       }
     );
     
+    const baseUrl = getBaseUrl(req);
     const postData = getPost[0].map(post => ({
       ...post,
       created_at: moment(post.created_at).tz(userTimezone).format(),
       updated_at: (!post.updated_at) ? null : moment(post.updated_at).tz(userTimezone).format(),
-      images: (!post.images) ? null : __basedir + '/public/images/' + post.images
+      images: (!post.images) ? baseUrl + '/images/no-image.jpeg' : baseUrl + '/images/' + post.images
     }));
 
     const getDataAmount = await sequelize.query(
@@ -198,11 +200,12 @@ const getById = async (req, res) => {
       });
     }
 
+    const baseUrl = getBaseUrl(req);
     const postData = getPost[0].map(post => ({
       ...post,
       created_at: moment(post.created_at).tz(userTimezone).format(),
       updated_at: (!post.updated_at) ? null : moment(post.updated_at).tz(userTimezone).format(),
-      images: (!post.images) ? null : __basedir + '/public/images/' + post.images
+      images: (!post.images) ? baseUrl + '/images/no-image.jpeg' : baseUrl + '/images/' + post.images
     }));
 
     return res.status(200).json({
@@ -224,15 +227,15 @@ const getByUser = async (req, res) => {
     const { username } = req.params;
     const { pagination, page, search, category, start_date, end_date, order_by, order } = req.query;
     
+    const limit = pagination ?? 10;
+    const pages = page ?? 1;
+    const offset = (pages - 1) * limit;
     const searchKey = (!search) ? '%' : `%${search}%`;
     const categoryKey = category ?? null;
     const startDate = start_date ?? null;
     const endDate = end_date ?? null;
     const orderBy = order_by ?? 'created_at';
     const orderKey = order ?? 'DESC';
-    const limit = pagination ?? 3;
-    const pages = page ?? 1;
-    const offset = (pages - 1) * limit;
 
     let orderQuery = '';
     if (orderBy === 'title') {
@@ -260,7 +263,6 @@ const getByUser = async (req, res) => {
       });
     }
 
-    
     if (categoryKey) {
       const categoryExist = await CategoryModel.findOne(
         {
@@ -328,11 +330,12 @@ const getByUser = async (req, res) => {
       }
     );
     
+    const baseUrl = getBaseUrl(req);
     const postData = getPost[0].map(post => ({
       ...post,
       created_at: moment(post.created_at).tz(userTimezone).format(),
       updated_at: (!post.updated_at) ? null : moment(post.updated_at).tz(userTimezone).format(),
-      images: (!post.images) ? null : __basedir + '/public/images/' + post.images
+      images: (!post.images) ? baseUrl + '/images/no-image.jpeg' : baseUrl + '/images/' + post.images
     }));
 
     const getDataAmount = await sequelize.query(

@@ -51,20 +51,23 @@ const getAll = async (req, res) => {
     const getUsers = await UsersModel.findAll(
       {
         attributes: ['id', 'name', 'username'],
-      },
-      {
+        where: { is_deleted: false },
         limit,
         offset,
+        order: [['name', 'ASC']],
       }
     );
-    
-    const dataAmount = await UsersModel.count();
-    const maxPage = dataAmount / limit;
+    const usersData = getUsers.map(user => ({...user.dataValues}));
+
+    const dataAmount = await UsersModel.count({
+      where: { is_deleted: false },
+    });
+    const maxPage = Math.ceil(dataAmount / limit);
 
     return res.status(200).json({
       message: 'success',
       statusCode: 200,
-      data: getUsers.dataValues,
+      data: usersData,
       meta: {
         pagination: Number(limit),
         page: Number(pages),

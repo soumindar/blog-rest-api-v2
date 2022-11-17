@@ -14,7 +14,6 @@ const register = async (req, res) => {
         attributes: ['username'],
         where: {
           username,
-          is_deleted: false,
         }
       }
     );

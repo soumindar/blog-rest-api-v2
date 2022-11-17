@@ -6,7 +6,7 @@ const getData = async (req, res) => {
   try {
     const { pagination, page, order_by, order } = req.query;
 
-    const limit = pagination ?? 3;
+    const limit = pagination ?? 10;
     const pages = page ?? 1;
     const offset = (pages - 1) * limit;
     const orderBy = order_by ?? 'category';
