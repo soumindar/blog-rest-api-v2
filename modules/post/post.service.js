@@ -425,7 +425,6 @@ const createPost = async (req, res) => {
       });
     };
     
-
     await PostModel.create(
       {
         user_id,
