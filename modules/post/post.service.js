@@ -413,14 +413,18 @@ const createPost = async (req, res) => {
       });
     }
 
-    const imageFile = req.files.image;
-    const fileName =  Date.now() + extention.getExt(imageFile.name);
-    const uploadPath = __basedir + '/public/images/' + fileName;
-    imageFile.mv(uploadPath, function(err) {
-      if (err) {
-        return res.status(500).send(err);
-      }
-    });
+    let fileName = null;
+    if (req.files) {
+      const imageFile = req.files.image;
+      fileName =  Date.now() + extention.getExt(imageFile.name);
+      const uploadPath = __basedir + '/public/images/' + fileName;
+      imageFile.mv(uploadPath, function(err) {
+        if (err) {
+          return res.status(500).send(err);
+        }
+      });
+    };
+    
 
     await PostModel.create(
       {
