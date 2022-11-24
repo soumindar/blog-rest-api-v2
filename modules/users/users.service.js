@@ -170,7 +170,7 @@ const updateUser = async (req, res) => {
 const changePass = async (req, res) => {
   try {
     const userId = req.user.id;
-    const { new_pass, confirm_pass } = req.body;
+    const { old_pass, new_pass, confirm_pass } = req.body;
 
     if (new_pass != confirm_pass) {
       return res.status(400).json({
@@ -179,6 +179,18 @@ const changePass = async (req, res) => {
       });
     }
 
+    const getUser = await UsersModel.findOne({
+      attributes: ['password'],
+      where: { id: userId },
+    });
+    const user = getUser.dataValues;
+    const passwordMatch = await bcrypt.compareSync(old_pass, user.password);
+    if (!passwordMatch) {
+      return res.status(400).json({
+        message: 'old password is wrong',
+        statusCode: 400,
+      });
+    }
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(new_pass, salt);
 
